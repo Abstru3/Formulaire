@@ -1,57 +1,108 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <title>Résultat du tirage</title>
     <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="./icon.jpg" type="image/x-icon">
 </head>
+
 <body>
 
-<?php
-try {
-    $pdo = new PDO("mysql:host=db;dbname=dbBesian;charset=utf8", "root", "root");
-} catch (Exception $e) {
-    die("<h1>Erreur connexion BDD</h1>");
-}
-
-$champs = [];
-
-for ($i = 1; $i <= 10; $i++) {
-    if (!empty($_POST['c' . $i])) {
-        $champs['c' . $i] = $_POST['c' . $i];
+    <?php
+    try {
+        $pdo = new PDO("mysql:host=db;dbname=formulaire;charset=utf8", "root", "root");
+    } catch (Exception $e) {
+        die("<h1>Erreur connexion BDD</h1>");
     }
-}
 
-if (count($champs) > 0) {
+    $champs = [];
 
-    $champTire = array_rand($champs);
-    $valeurTiree = $champs[$champTire];
+    for ($i = 1; $i <= 10; $i++) {
+        if (!empty($_POST['c' . $i])) {
+            $champs['c' . $i] = $_POST['c' . $i];
+        }
+    }
 
-    $date = date("Y-m-d");
-    $heure = date("H:i:s");
+    if (count($champs) > 0) {
 
-    $sql = "INSERT INTO tirages (champ, valeur, date_tirage, heure_tirage)
-            VALUES (:champ, :valeur, :date_tirage, :heure_tirage)";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ":champ" => $champTire,
-        ":valeur" => $valeurTiree,
-        ":date_tirage" => $date,
-        ":heure_tirage" => $heure
-    ]);
+        $champTire = array_rand($champs);
+        $valeurTiree = $champs[$champTire];
 
-    echo "<h1>Le gagnant est : " . htmlspecialchars($valeurTiree) . "</h1>";
-    echo "<h3>(Champ tiré : " . htmlspecialchars($champTire) . ")</h3>";
+        $date = date("Y-m-d");
+        $heure = date("H:i:s");
 
-} else {
-    echo "<h1>Aucun participant</h1>";
-}
+        $migrationsDir = __DIR__ . "/../db/migrations";
 
-echo '<br><a href="index.html">Retour</a>';
-?>
+        // Créer le dossier s'il n'existe pas
+        if (!is_dir($migrationsDir)) {
+            mkdir($migrationsDir, 0755, true);
+        }
+
+        // Récupérer les migrations exécutées
+        $stmt = $pdo->query("SELECT filename FROM migrations");
+        $executed = [];
+        while ($row = $stmt->fetch()) {
+            $executed[] = $row['filename'];
+        }
+
+        // Trouver le fichier de migration en cours (non exécuté)
+        $files = array_merge(
+            glob($migrationsDir . '/*.json') ?: [],
+            glob($migrationsDir . '/*.sql') ?: []
+        );
+        sort($files);
+        $currentMigration = null;
+        
+        foreach (array_reverse($files) as $file) {
+            $filename = basename($file);
+            if (!in_array($filename, $executed) && pathinfo($file, PATHINFO_EXTENSION) === 'json') {
+                $currentMigration = $file;
+                break;
+            }
+        }
+
+        // Si pas de migration en cours, en créer une nouvelle
+        if (!$currentMigration) {
+            $counterFile = $migrationsDir . "/.counter";
+            $counter = file_exists($counterFile) ? intval(file_get_contents($counterFile)) : 0;
+            $migrationNumber = 1000 + $counter + 1;
+            file_put_contents($counterFile, $counter + 1);
+            
+            $timestamp = date("YmdHis");
+            $currentMigration = $migrationsDir . "/" . str_pad($migrationNumber, 3, "0", STR_PAD_LEFT) . "_tirage_$timestamp.json";
+        }
+
+        // Lire le fichier de migration actuel
+        $migrationData = [];
+        if (file_exists($currentMigration)) {
+            $content = file_get_contents($currentMigration);
+            $migrationData = json_decode($content, true) ?: [];
+        }
+
+        // Ajouter les nouvelles données
+        $migrationData[] = [
+            "valeur" => $valeurTiree,
+            "date_tirage" => $date,
+            "heure_tirage" => $heure
+        ];
+
+        // Sauvegarder le fichier de migration
+        file_put_contents($currentMigration, json_encode($migrationData, JSON_PRETTY_PRINT));
+
+        echo "<h1>Le gagnant est : " . htmlspecialchars($valeurTiree) . "</h1>";
+        echo "<h3>(Champ tiré : " . htmlspecialchars($champTire) . ")</h3>";
+        echo "<p style='color: green;'>✓ Tirage ajouté à la migration en cours</p>";
+    } else {
+        echo "<h1>Aucun participant</h1>";
+    }
+
+    echo '<br><a href="index.html">Retour</a>';
+    ?>
 
 </body>
+
 </html>
 
 
