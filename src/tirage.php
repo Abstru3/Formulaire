@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Résultat du tirage</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="./icon.jpg" type="image/x-icon">
 </head>
 <body>
 
