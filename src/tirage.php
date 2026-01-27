@@ -1,8 +1,17 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Résultat du tirage</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
 <?php
 try {
     $pdo = new PDO("mysql:host=db;dbname=dbBesian;charset=utf8", "root", "root");
 } catch (Exception $e) {
-    die("Erreur connexion BDD : " . $e->getMessage());
+    die("<h1>Erreur connexion BDD</h1>");
 }
 
 $champs = [];
@@ -16,8 +25,6 @@ for ($i = 1; $i <= 10; $i++) {
 if (count($champs) > 0) {
 
     $champTire = array_rand($champs);
-
-
     $valeurTiree = $champs[$champTire];
 
     $date = date("Y-m-d");
@@ -42,3 +49,12 @@ if (count($champs) > 0) {
 
 echo '<br><a href="index.html">Retour</a>';
 ?>
+
+</body>
+</html>
+
+
+<!-- 
+Créé par Besjan
+Récupéré John 
+-->

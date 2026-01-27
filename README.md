@@ -1,1 +1,2 @@
-Récupéré John (code de Besjan)
+Créé par Besjan
+Récupéré John
