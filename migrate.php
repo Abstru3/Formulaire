@@ -5,7 +5,7 @@
  * Usage: php migrate.php
  */
 
-$host = 'db';
+$host = 'localhost';
 $dbname = 'formulaire';
 $user = 'root';
 $password = 'root';

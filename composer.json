@@ -1,0 +1,20 @@
+{
+    "name": "eden/formulaire",
+    "autoload": {
+        "psr-4": {
+            "Eden\\Formulaire\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Zigleur",
+            "email": "eden.douru@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "symfony/http-client": "^8.0",
+        "symfony/dom-crawler": "^8.0",
+        "symfony/css-selector": "^8.0",
+        "phpunit/phpunit": "^12"
+    }
+}
