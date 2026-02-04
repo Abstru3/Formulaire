@@ -33,6 +33,19 @@
         $date = date("Y-m-d");
         $heure = date("H:i:s");
 
+        try {
+            $sql = "INSERT INTO tirages (valeur, date_tirage, heure_tirage) 
+                    VALUES (:valeur, :date_tirage, :heure_tirage)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ":valeur" => $valeurTiree,
+                ":date_tirage" => $date,
+                ":heure_tirage" => $heure
+            ]);
+        } catch (PDOException $e) {
+            error_log("Database insertion error: " . $e->getMessage());
+        }
+
         $migrationsDir = __DIR__ . "/../db/migrations";
 
         // Créer le dossier s'il n'existe pas
@@ -54,7 +67,7 @@
         );
         sort($files);
         $currentMigration = null;
-        
+
         foreach (array_reverse($files) as $file) {
             $filename = basename($file);
             if (!in_array($filename, $executed) && pathinfo($file, PATHINFO_EXTENSION) === 'json') {
@@ -69,7 +82,7 @@
             $counter = file_exists($counterFile) ? intval(file_get_contents($counterFile)) : 0;
             $migrationNumber = 1000 + $counter + 1;
             file_put_contents($counterFile, $counter + 1);
-            
+
             $timestamp = date("YmdHis");
             $currentMigration = $migrationsDir . "/" . str_pad($migrationNumber, 3, "0", STR_PAD_LEFT) . "_tirage_$timestamp.json";
         }
@@ -93,7 +106,7 @@
 
         echo "<h1>Le gagnant est : " . htmlspecialchars($valeurTiree) . "</h1>";
         echo "<h3>(Champ tiré : " . htmlspecialchars($champTire) . ")</h3>";
-        echo "<p style='color: green;'>✓ Tirage ajouté à la migration en cours</p>";
+        echo "<p style='color: green;'>✓ Tirage ajouté à la base de données et à la migration</p>";
     } else {
         echo "<h1>Aucun participant</h1>";
     }
